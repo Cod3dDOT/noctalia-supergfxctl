@@ -1,0 +1,17 @@
+{
+	"gpu": "GPU",
+	"unknown": "Unknown",
+	"action": {
+		"required": "required",
+		"switch": "Switch to Integrated",
+		"disable_egpu": "Disable ASUS eGPU First"
+	},
+	"mode": {
+		"Integrated": "Integrated",
+		"Hybrid": "Hybrid",
+		"NvidiaNoModeset": "Nvidia no modeset",
+		"Vfio": "VFIO",
+		"AsusEgpu": "Asus eGPU",
+		"AsusMuxDgpu": "Asus MUX dGPU"
+	}
+}
