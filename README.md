@@ -1,4 +1,4 @@
-[![noctalia-supergfxctl](./docs/PANEL.png)](https://github.com/cod3ddot/noctalia-supergfxctl)
+[![noctalia-supergfxctl](./preview.png)](https://github.com/cod3ddot/noctalia-supergfxctl)
 
 # noctalia-supergfxctl
 
