@@ -67,7 +67,7 @@ Item {
             return;
         }
 
-        setModeProc.command = ["supergfxctl", "--mode", entry.key];
+        setModeProc.command = ["supergfxctl", "--mode", entry.cmd];
         setModeProc.running = true;
 
         log("setting mode:", mode);
@@ -457,7 +457,8 @@ Item {
 
         stderr: StdioCollector {
             onStreamFinished: {
-                root.error(text);
+                if (text)
+                    root.error(text);
             }
         }
 

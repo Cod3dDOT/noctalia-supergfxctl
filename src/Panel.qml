@@ -43,6 +43,7 @@ Item {
 
         enabled: root.supergfxctl.supportedModes.includes(modeEnum)
         outlined: modeEnum !== root.supergfxctl.mode
+        backgroundColor: modeEnum === root.supergfxctl.pendingMode ? Color.mTertiary : Color.mPrimary
         border.width: Style.borderM
         text: info.label
         icon: info.icon

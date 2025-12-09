@@ -5,6 +5,8 @@
 Minimum noctalia version: `3.6.0`
 
 Brings supergfxctl control to your noctalia shell.  
+Available modes are detected automatically. Current mode is highlighted in the main color, pending mode will be in tertiary.
+
 Made possible by [supergfxctl](https://gitlab.com/asus-linux/supergfxctl).  
 Thanks [asusctl](https://gitlab.com/asus-linux/asusctl), [rog-control-center](https://gitlab.com/asus-linux/asusctl/-/tree/main/rog-control-center) for code inspiration.
 

@@ -82,7 +82,7 @@ Item {
             height: 8
             width: height
             radius: Style.radiusXS
-            color: Color.mError
+            color: Color.mTertiary
             border.color: Color.mSurface
             border.width: Style.borderS
         }
