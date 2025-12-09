@@ -3,7 +3,7 @@
 	"name": "SuperGFX Control",
 	"version": "0.0.1",
 	"minNoctaliaVersion": "3.6.0",
-	"author": "cod3d",
+	"author": "cod3d <cod3ddot@proton.me>",
 	"license": "AGPL-3.0-or-later",
 	"repository": "https://github.com/cod3ddot/noctalia-supergfxctl",
 	"description": "GPU control with supergfxctl for noctalia.",

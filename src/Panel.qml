@@ -78,7 +78,7 @@ Item {
             NIconButtonHot {
                 icon: root.pendingAction.icon
                 baseSize: Style.baseWidgetSize * 0.8
-                color: Color.mError
+                color: Color.mTertiary
                 hot: true
                 tooltipText: root.pendingAction.label
 
