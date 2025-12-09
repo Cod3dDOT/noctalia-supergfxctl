@@ -28,7 +28,7 @@ Item {
     readonly property string density: Settings.data.bar.density
     readonly property bool isBarVertical: Settings.data.bar.position === "left" || Settings.data.bar.position === "right"
 
-    readonly property var supergfxctl: PluginService.loadedPlugins[pluginApi.pluginId].mainInstance
+    readonly property var supergfxctl: pluginApi.mainInstance
 
     readonly property var currentMode: supergfxctl.modeInfo(supergfxctl.mode)
 
@@ -113,11 +113,11 @@ Item {
                 "icon": "refresh"
             });
 
-            // items.push({
-            //     "label": I18n.tr("context-menu.widget-settings"),
-            //     "action": "widget-settings",
-            //     "icon": "settings"
-            // });
+            items.push({
+                "label": I18n.tr("context-menu.widget-settings"),
+                "action": "widget-settings",
+                "icon": "settings"
+            });
 
             return items;
         }

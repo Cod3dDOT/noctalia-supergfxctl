@@ -1,0 +1,44 @@
+/*
+ * SPDX-FileCopyrightText: 2025 cod3ddot@proton.me
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+import QtQuick
+import QtQuick.Layouts
+
+import qs.Commons
+import qs.Widgets
+
+ColumnLayout {
+    id: root
+
+    property var pluginApi: null
+    readonly property var supergfxctl: pluginApi.mainInstance
+
+    property bool debug: false
+
+    spacing: Style.marginM
+
+    NToggle {
+        Layout.fillWidth: true
+        label: "Debug"
+        description: "Print debug values in console"
+        checked: root.debug
+    }
+
+    function saveSettings() {
+        if (!pluginApi) {
+            supergfxctl.error("cannot save settings: pluginApi is null");
+            return;
+        }
+
+        // Update the plugin settings object
+        pluginApi.pluginSettings.debug = root.debug;
+
+        // Save to disk
+        pluginApi.saveSettings();
+
+        supergfxctl.log("settings saved successfully");
+    }
+}

@@ -8,9 +8,10 @@
 	"repository": "https://github.com/cod3ddot/noctalia-supergfxctl",
 	"description": "GPU control with supergfxctl.",
 	"entryPoints": {
-		"main": "Main.qml",
-		"barWidget": "Bar.qml",
-		"panel": "Panel.qml"
+		"main": "src/Main.qml",
+		"barWidget": "src/Bar.qml",
+		"panel": "src/Panel.qml",
+		"settings": "src/Settings.qml"
 	},
 	"dependencies": {
 		"plugins": []

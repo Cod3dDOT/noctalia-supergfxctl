@@ -29,7 +29,7 @@ Item {
 
     anchors.fill: parent
 
-    readonly property var supergfxctl: PluginService.loadedPlugins[pluginApi.pluginId].mainInstance
+    readonly property var supergfxctl: pluginApi.mainInstance
 
     readonly property var currentMode: supergfxctl.modeInfo(supergfxctl.mode)
     readonly property var pendingAction: supergfxctl.actionInfo(supergfxctl.pendingAction)
