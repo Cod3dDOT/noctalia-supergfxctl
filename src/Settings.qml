@@ -14,7 +14,7 @@ ColumnLayout {
     id: root
 
     property var pluginApi: null
-    readonly property var supergfxctl: pluginApi.mainInstance
+    property var gpuApi: pluginApi?.mainInstance
 
     property bool debug: pluginApi?.pluginSettings?.debug || pluginApi?.manifest?.metadata?.defaultSettings?.debug || false
 
@@ -31,16 +31,15 @@ ColumnLayout {
     // This function is called by the dialog
     function saveSettings() {
         if (!pluginApi) {
-            supergfxctl.error("cannot save settings: pluginApi is null");
+            gpuApi?.error("cannot save settings: pluginApi is null");
             return;
         }
 
-        // Update the plugin settings object
         pluginApi.pluginSettings.debug = root.debug;
 
         // Save to disk
         pluginApi.saveSettings();
 
-        supergfxctl.log("settings saved successfully");
+        gpuApi?.log("settings saved successfully");
     }
 }

@@ -21,39 +21,180 @@ Item {
 
     property var pluginApi: null
 
-    readonly property var geometryPlaceholder: panelContainer
-    readonly property bool allowAttach: true
+    property var geometryPlaceholder: panelContainer
+    property bool allowAttach: true
 
-    property real contentPreferredWidth: 500 * Style.uiScaleRatio
-    property real contentPreferredHeight: 200 * Style.uiScaleRatio
+    readonly property real contentPreferredWidth: 450 * Style.uiScaleRatio
+    readonly property real contentPreferredHeight: 180 * Style.uiScaleRatio
 
     anchors.fill: parent
 
-    readonly property var supergfxctl: pluginApi.mainInstance
+    readonly property var gpuApi: pluginApi?.mainInstance
+    readonly property bool available: gpuApi?.available ?? false
 
-    readonly property var currentMode: supergfxctl.modeInfo(supergfxctl.mode)
-    readonly property var pendingAction: supergfxctl.actionInfo(supergfxctl.pendingAction)
+    readonly property string currentIcon: gpuApi.getModeIcon(gpuApi.mode)
+    readonly property string currentLabel: gpuApi.getModeLabel(gpuApi.mode)
 
-    component GPUButton: NButton {
-        property int modeEnum: Main.Mode.None
-        readonly property var info: root.supergfxctl.modeInfo(modeEnum)
+    readonly property int pendingAction: gpuApi.pendingAction
+    readonly property int pendingMode: gpuApi.pendingMode
+
+    component GPUButton: Rectangle {
+        id: gpuButton
+
+        property int mode
+
+        readonly property bool isCurrentMode: mode === root.gpuApi.mode
+        readonly property bool isPendingMode: mode === root.gpuApi.pendingMode
+        readonly property bool isSupported: root.gpuApi.isModeSupported(mode)
+
+        property string text: root.gpuApi.getModeLabel(mode)
+        property string icon: root.gpuApi.getModeIcon(mode)
+        property bool hovered: mouse.hovered
+
+        // Not clickable when current or unsupported
+        readonly property bool interactive: {
+            if (!isSupported) {
+                return false;
+            }
+
+            if (isPendingMode) {
+                return false;
+            }
+
+            if (isCurrentMode && root.gpuApi.pendingMode === Main.SGFXMode.None) {
+                return false;
+            }
+
+            return true;
+        }
+
+        readonly property color textColor: {
+            if (!isSupported)
+                return Color.mOutline;
+
+            if (hovered) {
+                return Color.mTertiary;
+            }
+
+            if (isPendingMode)
+                return Color.mOnTertiary;
+
+            if (isCurrentMode)
+                return Color.mOnPrimary;
+
+            return Color.mPrimary;
+        }
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 50
+        implicitWidth: contentRow.implicitWidth + (Style.marginL * 2)
+        implicitHeight: contentRow.implicitHeight + (Style.marginL * 2)
 
-        enabled: root.supergfxctl.supportedModes.includes(modeEnum)
-        outlined: modeEnum !== root.supergfxctl.mode
-        backgroundColor: modeEnum === root.supergfxctl.pendingMode ? Color.mTertiary : Color.mPrimary
+        radius: Style.iRadiusS
+
+        color: {
+            if (!isSupported) {
+                return Qt.lighter(Color.mSurfaceVariant, 1.2);
+            }
+
+            if (hovered) {
+                return Color.transparent;
+            }
+
+            if (isCurrentMode) {
+                return Color.mPrimary;
+            }
+
+            if (isPendingMode) {
+                return Color.mTertiary;
+            }
+
+            // non-current default
+            return Color.transparent;
+        }
+
         border.width: Style.borderM
-        text: info.label
-        icon: info.icon
+        border.color: {
+            if (!isSupported) {
+                return Color.mOutline;
+            }
 
-        onClicked: root.supergfxctl.setMode(modeEnum)
+            if (isPendingMode || hovered) {
+                return Color.mTertiary;
+            }
+
+            return Color.mPrimary;
+        }
+
+        opacity: isSupported ? 1.0 : 0.6
+
+        Behavior on color {
+            ColorAnimation {
+                duration: Style.animationFast
+                easing.type: Easing.OutCubic
+            }
+        }
+        Behavior on border.color {
+            ColorAnimation {
+                duration: Style.animationFast
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        RowLayout {
+            id: contentRow
+            anchors.centerIn: parent
+            spacing: Style.marginXS
+
+            NIcon {
+                icon: gpuButton.icon
+                pointSize: Style.fontSizeL
+                color: gpuButton.textColor
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: Style.animationFast
+                        easing.type: Easing.OutCubic
+                    }
+                }
+            }
+
+            NText {
+                text: gpuButton.text
+                pointSize: Style.fontSizeM
+                font.weight: Style.fontWeightBold
+                color: gpuButton.textColor
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: Style.animationFast
+                        easing.type: Easing.OutCubic
+                    }
+                }
+            }
+        }
+
+        TapHandler {
+            enabled: gpuButton.interactive
+            gesturePolicy: TapHandler.ReleaseWithinBounds
+            onTapped: root.gpuApi.setMode(gpuButton.mode)
+        }
+
+        HoverHandler {
+            id: mouse
+            enabled: gpuButton.interactive
+            cursorShape: Qt.PointingHandCursor
+        }
     }
 
     component Header: NBox {
+        id: headerBox
         Layout.fillWidth: true
         Layout.preferredHeight: header.implicitHeight + Style.marginM * 2
+
+        readonly property string pendingActionIcon: root.gpuApi.getActionIcon(root.pendingAction)
+        readonly property string pendingActionLabel: root.gpuApi.getActionLabel(root.pendingAction)
+
+        readonly property string label: root.pluginApi.tr("gpu")
 
         RowLayout {
             id: header
@@ -62,13 +203,13 @@ Item {
             spacing: Style.marginM
 
             NIcon {
-                icon: currentMode.icon
+                icon: root.currentIcon
                 pointSize: Style.fontSizeXXL
                 color: Color.mPrimary
             }
 
             NText {
-                text: root.pluginApi.tr("gpu")
+                text: headerBox.label
                 pointSize: Style.fontSizeL
                 font.weight: Style.fontWeightBold
                 color: Color.mOnSurface
@@ -76,21 +217,20 @@ Item {
             }
 
             NIconButtonHot {
-                icon: root.pendingAction.icon
+                icon: headerBox.pendingActionIcon
                 baseSize: Style.baseWidgetSize * 0.8
                 color: Color.mTertiary
                 hot: true
-                tooltipText: root.pendingAction.label
-
-                visible: root.supergfxctl.hasPendingAction
+                tooltipText: headerBox.pendingActionLabel
+                visible: root.gpuApi.hasPendingAction
             }
 
             NIconButton {
                 icon: "refresh"
                 tooltipText: I18n.tr("tooltips.refresh")
                 baseSize: Style.baseWidgetSize * 0.8
-                enabled: root.supergfxctl.available
-                onClicked: root.supergfxctl.refresh()
+                enabled: root.available && !root.gpuApi.refreshing
+                onClicked: root.gpuApi.refresh()
             }
 
             NIconButton {
@@ -119,13 +259,13 @@ Item {
                 spacing: Style.marginM
 
                 GPUButton {
-                    modeEnum: Main.SGFXMode.Integrated
+                    mode: Main.SGFXMode.Integrated
                 }
                 GPUButton {
-                    modeEnum: Main.SGFXMode.Hybrid
+                    mode: Main.SGFXMode.Hybrid
                 }
                 GPUButton {
-                    modeEnum: Main.SGFXMode.AsusMuxDgpu
+                    mode: Main.SGFXMode.AsusMuxDgpu
                 }
             }
 
@@ -134,10 +274,10 @@ Item {
                 spacing: Style.marginM
 
                 GPUButton {
-                    modeEnum: Main.SGFXMode.AsusEgpu
+                    mode: Main.SGFXMode.AsusEgpu
                 }
                 GPUButton {
-                    modeEnum: Main.SGFXMode.Vfio
+                    mode: Main.SGFXMode.Vfio
                 }
             }
         }

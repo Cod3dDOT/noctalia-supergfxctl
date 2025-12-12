@@ -10,8 +10,8 @@
 	"entryPoints": {
 		"main": "src/Main.qml",
 		"barWidget": "src/Bar.qml",
-		"panel": "src/Panel.qml",
-		"settings": "src/Settings.qml"
+		"settings": "src/Settings.qml",
+		"panel": "src/Panel.qml"
 	},
 	"dependencies": {
 		"plugins": []

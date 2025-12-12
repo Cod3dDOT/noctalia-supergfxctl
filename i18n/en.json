@@ -6,8 +6,8 @@
 	},
 	"action": {
 		"required": "required",
-		"switch": "Switch to Integrated",
-		"disable_egpu": "Disable ASUS eGPU First"
+		"SwitchToIntegrated": "Switch to integrated gpu",
+		"AsusEgpuDisable": "Disable ASUS eGPU First"
 	},
 	"mode": {
 		"Integrated": "Integrated",
