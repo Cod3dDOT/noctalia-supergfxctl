@@ -2,7 +2,7 @@
 
 # noctalia-supergfxctl
 
-Minimum noctalia version: `3.7.1`
+Minimum noctalia version: `3.7.5`
 
 Brings GPU control to your noctalia shell.  
 Available modes are detected automatically. Current mode is highlighted in the main color, pending mode will be in tertiary.
