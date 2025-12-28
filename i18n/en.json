@@ -1,13 +1,26 @@
 {
 	"gpu": "GPU",
 	"unknown": "Unknown",
+	"settings": {
+		"debug": {
+			"label": "Debug mode",
+			"description": "Prints debug output in console"
+		},
+		"polling": {
+			"label": "Polling",
+			"description": "Enable/disable polling of supergfxctl process"
+		},
+		"listenToNotifications": {
+			"label": "Listen to notifications",
+			"description": "Listen to rog-control-center notifications"
+		}
+	},
 	"context-menu": {
 		"refresh": "Refresh status"
 	},
 	"action": {
-		"required": "required",
-		"SwitchToIntegrated": "Switch to integrated gpu",
-		"AsusEgpuDisable": "Disable ASUS eGPU First"
+		"SwitchToIntegrated": "Switch to integrated gpu first",
+		"AsusEgpuDisable": "Disable ASUS eGPU first"
 	},
 	"mode": {
 		"Integrated": "Integrated",

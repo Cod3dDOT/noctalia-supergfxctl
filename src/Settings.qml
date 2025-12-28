@@ -1,7 +1,7 @@
 /*
  * SPDX-FileCopyrightText: 2025 cod3ddot@proton.me
  *
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: MIT
  */
 
 import QtQuick
@@ -13,33 +13,67 @@ import qs.Widgets
 ColumnLayout {
     id: root
 
+    // noctalia plugin api, injected dynamically
     property var pluginApi: null
-    property var gpuApi: pluginApi?.mainInstance
-
-    property bool debug: pluginApi?.pluginSettings?.debug || pluginApi?.manifest?.metadata?.defaultSettings?.debug || false
+    readonly property var pluginCore: pluginApi?.mainInstance
 
     spacing: Style.marginM
 
     NToggle {
         Layout.fillWidth: true
-        label: "Debug"
-        description: "Print debug values in console"
-        checked: root.debug
-        onToggled: checked => root.debug = checked
+        label: root.pluginApi.tr("settings.debug.label")
+        description: root.pluginApi.tr("settings.debug.description")
+        checked: root.pluginCore.pluginSettings.debug
+        onToggled: checked => root.pluginCore.pluginSettings.debug = checked
     }
 
-    // This function is called by the dialog
-    function saveSettings() {
+    NToggle {
+        Layout.fillWidth: true
+        // TODO: enable once implemented
+        enabled: false
+        label: root.pluginApi.tr("settings.listenToNotifications.label")
+        description: root.pluginApi.tr("settings.listenToNotifications.description")
+        checked: root.pluginCore.pluginSettings.listenToNotifications
+        onToggled: checked => root.pluginCore.pluginSettings.listenToNotifications = checked
+    }
+
+    NToggle {
+        Layout.fillWidth: true
+        // TODO: enable once implemented
+        enabled: false
+        label: root.pluginApi.tr("settings.polling.label")
+        description: root.pluginApi.tr("settings.polling.description")
+        checked: root.pluginCore.pluginSettings.polling
+        onToggled: checked => root.pluginCore.pluginSettings.polling = checked
+    }
+
+    NValueSlider {
+        Layout.fillWidth: true
+        text: root.pluginCore.pluginSettings.pollingInterval + "ms"
+        // TODO: enable once implemented
+        // enabled: root.pluginCore.pluginSettings.polling
+        enabled: false
+        from: 1000
+        to: 5000
+        stepSize: 250
+        value: root.pluginCore.pluginSettings.pollingInterval
+        onMoved: root.pluginCore.pluginSettings.pollingInterval = value
+    }
+
+    // This function is called by noctalia dialog
+    function saveSettings(): void {
         if (!pluginApi) {
-            gpuApi?.error("cannot save settings: pluginApi is null");
-            return;
+            return root.pluginCore?.error("cannot save settings: pluginApi is null");
         }
 
-        pluginApi.pluginSettings.debug = root.debug;
+        root.pluginApi.pluginSettings.debug = root.pluginCore.pluginSettings.debug;
+        root.pluginApi.pluginSettings.polling = root.pluginCore.pluginSettings.polling;
+        root.pluginApi.pluginSettings.pollingInterval = root.pluginCore.pluginSettings.pollingInterval;
+        root.pluginApi.pluginSettings.listenToNotifications = root.pluginCore.pluginSettings.listenToNotifications;
 
-        // Save to disk
-        pluginApi.saveSettings();
+        // Persists to disk
+        root.pluginApi.saveSettings();
 
-        gpuApi?.log("settings saved successfully");
+        root.pluginCore?.log("saved settings");
     }
 }

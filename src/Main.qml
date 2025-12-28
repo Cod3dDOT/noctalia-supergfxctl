@@ -1,19 +1,17 @@
 /*
  * SPDX-FileCopyrightText: 2025 cod3ddot@proton.me
  *
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: MIT
  */
 
 import QtQuick
 import Quickshell.Io
+import Quickshell.Services.Notifications
 
 import qs.Commons
 
 Item {
     id: root
-
-    property var pluginApi: null
-    readonly property string pluginId: pluginApi?.pluginId ?? "noctalia-supergfxctl"
 
     enum SGFXMode {
         Integrated,
@@ -33,7 +31,25 @@ Item {
         Nothing
     }
 
-    readonly property bool debug: !!(pluginApi?.pluginSettings?.debug)
+    property var pluginApi: null
+    readonly property string pluginId: pluginApi?.pluginId
+    readonly property string pluginVersion: pluginApi?.manifest.version ?? "???"
+
+    // make the settings public
+    readonly property QtObject pluginSettings: pluginSettings
+
+    // TODO: make access read-only
+    QtObject {
+        id: pluginSettings
+
+        readonly property var manifest: root.pluginApi?.manifest.defaultSettings
+        readonly property var user: root.pluginApi?.pluginSettings
+
+        property bool debug: user.debug ?? manifest.debug ?? false
+        property bool polling: user.polling ?? manifest.polling ?? true
+        property int pollingInterval: user.pollingInterval ?? manifest.pollingInterval ?? 3000
+        property bool listenToNotifications: user.listenToNotifications ?? manifest.listenToNotifications ?? true
+    }
 
     readonly property bool available: sgfx.available
     readonly property bool busy: setModeProc.running || refreshProc.running
@@ -113,9 +129,9 @@ Item {
         case Main.SGFXAction.Reboot:
             return I18n.tr("session-menu.reboot");
         case Main.SGFXAction.SwitchToIntegrated:
-            return root.pluginApi.tr("action.SwitchToIntegrated") + " " + root.pluginApi.tr("action.required");
+            return root.pluginApi.tr("action.SwitchToIntegrated");
         case Main.SGFXAction.AsusEgpuDisable:
-            return root.pluginApi.tr("action.AsusEgpuDisable") + " " + root.pluginApi.tr("action.required");
+            return root.pluginApi.tr("action.AsusEgpuDisable");
         case Main.SGFXAction.Nothing:
         default:
             return "";
@@ -130,21 +146,21 @@ Item {
         return sgfx.setMode(mode);
     }
 
-    function log(...msg) {
-        if (debug) {
-            Logger.i(root.pluginId, "(supergfxctl v" + sgfx.version + "):", ...msg);
+    function log(...msg): void {
+        if (root.pluginSettings.debug) {
+            Logger.i(root.pluginId, `v${pluginVersion}/${version}`, ...msg);
         }
     }
 
-    function warn(...msg) {
-        if (debug) {
-            Logger.w(root.pluginId, "(supergfxctl v" + sgfx.version + "):", ...msg);
+    function warn(...msg): void {
+        if (root.pluginSettings.debug) {
+            Logger.w(root.pluginId, `v${pluginVersion}/${version}`, ...msg);
         }
     }
 
-    function error(...msg) {
-        if (debug) {
-            Logger.e(root.pluginId, "(supergfxctl v" + sgfx.version + "):", ...msg);
+    function error(...msg): void {
+        if (root.pluginSettings.debug) {
+            Logger.e(root.pluginId, `v${pluginVersion}/${version}`, ...msg);
         }
     }
 
@@ -153,11 +169,37 @@ Item {
         running: false
         command: ["supergfxctl", "--version", "--get", "--supported", "--pend-action", "--pend-mode"]
         stdout: StdioCollector {
+            // TODO: supergfxctl sometimes takes time to exit after printing
+            // investigate or find a workaround
             onStreamFinished: sgfx.parseOutput(text.trim())
         }
         onExited: exitCode => {
             if (exitCode !== 0) {
                 sgfx.available = false;
+            }
+        }
+    }
+
+    Timer {
+        id: pollingTimer
+        interval: root.pluginSettings.pollingInterval
+        repeat: true
+        running: root.pluginSettings.available && root.pluginSettings.polling && !root.busy
+
+        onTriggered: {
+            if (root.busy) {
+                root.log("poll skipped: supergfxctl is busy");
+                return;
+            }
+
+            root.refresh();
+        }
+    }
+
+    Connections {
+        target: NotificationServer {
+            onNotification: notification => {
+                root.log(notification);
             }
         }
     }
@@ -172,7 +214,7 @@ Item {
             }
         }
         onExited: exitCode => {
-            // pending mode has been et manually in sgfx.setMode
+            // pending mode has been set manually in sgfx.setMode
             if (exitCode === 0) {
                 sgfx.pendingAction = sgfx.requiredAction(sgfx.pendingMode, sgfx.mode);
             } else {
@@ -199,11 +241,12 @@ Item {
             //
             // which is close to the *supposed* supergfxctl behaviour
             // BUT IT IS NOT
-            // supergfxctl --pend-mode --pend-action reports absolute ****** nonsense
+            // supergfxctl --pend-mode --pend-action reports absolute nonsense
             sgfx.refresh();
         }
     }
 
+    // internal helper dealing with supergfxctl
     QtObject {
         id: sgfx
 
@@ -238,6 +281,11 @@ Item {
                 "No action required": Main.SGFXAction.Nothing
             })
 
+        // patched up version of pending actions for mode switch
+        // TODO: this WILL differ depending on hardware (maybe fw versions?)
+        // supergfxctl has an option to force reboot to deal with finicky hw
+        // probably should leave it up to supergfx to decide?
+        // or give the user ability to configure actions
         readonly property var actionMatrix: ({
                 [Main.SGFXMode.Hybrid]: ({
                         [Main.SGFXMode.Integrated]: Main.SGFXAction.Logout,
@@ -306,6 +354,8 @@ Item {
         }
 
         function parseOutput(text: string): bool {
+            root.log("[parseOutput] start");
+
             if (text == "") {
                 available = false;
                 return available;
@@ -319,12 +369,16 @@ Item {
             }
 
             const lineVersion = lines[0] || "???";
-            version = lineVersion;
-
             const lineMode = lines[1] || "None";
             const lineSupported = lines[2] || "[]";
             const linePendAction = lines[3] || "No action required";
             let linePendMode = lines[4] || "";
+
+            // set version as soon as possible
+            // mainly so that .log functions print correct version
+            version = lineVersion;
+
+            root.log(`[parseOutput] version=${lineVersion}, mode=${lineMode}, pendingMode=${linePendMode}, pendingAction=${linePendAction}`);
 
             if (linePendMode === "Unknown") {
                 linePendMode = "None";
@@ -353,6 +407,8 @@ Item {
                 for (let i = 0; i < modeEnums.length; i++) {
                     newSupportedMask |= 1 << modeEnums[i];
                 }
+            } else {
+                root.warn("[parseOutput] no supported modes reported");
             }
 
             const newPendingAction = actionEnum[linePendAction] ?? Main.SGFXAction.Nothing;
@@ -363,11 +419,14 @@ Item {
                 mode = newMode;
                 pendingMode = newPendMode;
                 pendingAction = requiredAction(sgfx.mode, newPendMode);
+                root.log("[parseOutput] state updated:", `mode=${mode}, pendingMode=${pendingMode}, pendingAction=${pendingAction}`);
+            } else {
+                root.log("[parseOutput] pending mode already set manually, skipping mode update");
             }
             supportedModesMask = newSupportedMask;
             available = true;
 
-            root.log("refreshed");
+            root.log(`[parseOutput] completed successfully (available=${available}, supportedMask=0x${newSupportedMask.toString(16)})`);
 
             return available;
         }

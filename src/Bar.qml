@@ -1,7 +1,7 @@
 /*
  * SPDX-FileCopyrightText: 2025 cod3ddot@proton.me
  *
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: MIT
  */
 
 import QtQuick
@@ -17,40 +17,23 @@ import qs.Services.Noctalia
 Item {
     id: root
 
+    // Plugin API (injected by PluginPanelSlot)
     property var pluginApi: null
+
+    // Required properties for bar widgets
     property ShellScreen screen
     property string widgetId: ""
     property string section: ""
-
     property int sectionWidgetIndex: -1
     property int sectionWidgetsCount: 0
 
-    readonly property string density: Settings.data.bar.density
-    readonly property bool isBarVertical: {
-        let pos = Settings.data.bar.position;
-        return pos === "left" || pos === "right";
-    }
+    readonly property var pluginCore: pluginApi?.mainInstance
 
-    property var gpuApi: pluginApi?.mainInstance  // now equals sgfx wrapper
+    readonly property string currentIcon: pluginCore?.getModeIcon(pluginCore.mode) ?? ""
+    readonly property string currentLabel: pluginCore?.getModeLabel(pluginCore.mode) ?? ""
+    readonly property real currentIconOpacity: pluginCore?.available ? 1.0 : 0.5
 
-    readonly property string currentIcon: gpuApi.getModeIcon(gpuApi.mode)
-    readonly property string currentLabel: gpuApi.getModeLabel(gpuApi.mode)
-    readonly property real currentIconOpacity: gpuApi?.available ? 1.0 : 0.5
-
-    readonly property string pendingActionLabel: {
-        if (!gpuApi)
-            return "";
-        const info = gpuApi.actionInfo ? gpuApi.actionInfo(gpuApi.pendingAction) : null;
-        return info?.label ?? "";
-    }
-
-    readonly property string tooltipText: {
-        if (!gpuApi?.available)
-            return "";
-        if (!gpuApi?.hasPendingAction)
-            return currentLabel;
-        return currentLabel + " | " + pendingActionLabel;
-    }
+    readonly property string pendingActionLabel: pluginCore?.hasPendingAction ? pluginCore?.getActionLabel(pluginCore.pendingAction) : ""
 
     implicitWidth: pill.width
     implicitHeight: pill.height
@@ -59,11 +42,15 @@ Item {
         id: pill
         opacity: root.currentIconOpacity
         screen: root.screen
-        density: root.density
         oppositeDirection: BarService.getPillDirection(root)
         icon: root.currentIcon
         autoHide: false
-        tooltipText: root.tooltipText
+        tooltipText: {
+            if (!pluginCore?.hasPendingAction) {
+                return currentLabel;
+            }
+            return currentLabel + " | " + root.pendingActionLabel;
+        }
 
         onClicked: root.pluginApi?.openPanel(root.screen)
 
@@ -71,14 +58,13 @@ Item {
             var popupMenuWindow = PanelService.getPopupMenuWindow(root.screen);
             if (popupMenuWindow) {
                 popupMenuWindow.showContextMenu(contextMenu);
-                const pos = BarService.getContextMenuPosition(pill, contextMenu.implicitWidth, contextMenu.implicitHeight);
-                contextMenu.openAtItem(pill, pos.x, pos.y);
+                contextMenu.openAtItem(pill, root.screen);
             }
         }
 
         Rectangle {
             id: badge
-            visible: root.gpuApi?.hasPendingAction
+            visible: root.pluginCore?.hasPendingAction
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.rightMargin: 2
@@ -96,31 +82,25 @@ Item {
     NPopupContextMenu {
         id: contextMenu
 
-        model: {
-            let items = [];
-
-            items.push({
-                "label": "Current: " + root.currentLabel,
+        model: [
+            {
+                "label": root.currentLabel,
                 "action": "current",
                 "icon": root.currentIcon,
                 "enabled": false
-            });
-
-            items.push({
+            },
+            {
                 "label": root.pluginApi?.tr("context-menu.refresh"),
                 "action": "refresh",
                 "icon": "refresh"
-            });
-
-            items.push({
+            },
+            {
                 "label": "Access settings in the control center",
                 "action": "widget-settings",
                 "icon": "settings",
                 "enabled": false
-            });
-
-            return items;
-        }
+            }
+        ]
 
         onTriggered: action => {
             var popupMenuWindow = PanelService.getPopupMenuWindow(root.screen);
@@ -130,7 +110,7 @@ Item {
 
             switch (action) {
             case "refresh":
-                root.gpuApi?.refresh();
+                root.pluginCore?.refresh();
                 break;
             case "widget-settings":
                 // unsupported for now

@@ -1,7 +1,7 @@
 /*
  * SPDX-FileCopyrightText: 2025 cod3ddot@proton.me
  *
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: MIT
  */
 
 pragma ComponentBehavior: Bound
@@ -19,100 +19,96 @@ import qs.Services.Noctalia
 Item {
     id: root
 
+    // Plugin API (injected by PluginPanelSlot)
     property var pluginApi: null
+    readonly property QtObject pluginCore: pluginApi?.mainInstance
 
-    property var geometryPlaceholder: panelContainer
-    property bool allowAttach: true
+    // SmartPanel properties (required for panel behavior)
+    readonly property var geometryPlaceholder: panelContainer
+    readonly property bool allowAttach: true
 
     readonly property real contentPreferredWidth: 450 * Style.uiScaleRatio
     readonly property real contentPreferredHeight: 180 * Style.uiScaleRatio
 
+    readonly property bool available: pluginCore?.available ?? false
+    readonly property bool busy: pluginCore?.busy ?? false
+
+    readonly property string currentIcon: pluginCore?.getModeIcon(pluginCore?.mode) ?? ""
+    readonly property string currentLabel: pluginCore?.getModeLabel(pluginCore?.mode) ?? ""
+
+    readonly property int pendingAction: pluginCore?.pendingAction ?? Main.SGFXAction.Nothing
+    readonly property int pendingMode: pluginCore?.pendingMode ?? Main.SGFXMode.None
+
     anchors.fill: parent
-
-    readonly property var gpuApi: pluginApi?.mainInstance
-    readonly property bool available: gpuApi?.available ?? false
-    readonly property bool busy: gpuApi?.busy ?? false
-
-    readonly property string currentIcon: gpuApi.getModeIcon(gpuApi.mode)
-    readonly property string currentLabel: gpuApi.getModeLabel(gpuApi.mode)
-
-    readonly property int pendingAction: gpuApi.pendingAction
-    readonly property int pendingMode: gpuApi.pendingMode
 
     component GPUButton: Rectangle {
         id: gpuButton
 
-        property int mode
+        required property int mode
 
-        readonly property bool isCurrentMode: mode === root.gpuApi.mode
-        readonly property bool isPendingMode: mode === root.gpuApi.pendingMode
-        readonly property bool isSupported: root.gpuApi.isModeSupported(mode)
+        readonly property bool _current: mode === root.pluginCore?.mode
+        readonly property bool _pending: mode === root.pluginCore?.pendingMode
+        readonly property bool _supported: root.pluginCore?.isModeSupported(mode) ?? false
 
-        property string text: root.gpuApi.getModeLabel(mode)
-        property string icon: root.gpuApi.getModeIcon(mode)
-        property bool hovered: mouse.hovered
+        readonly property bool _hovered: mouse.hovered
+        readonly property string text: root.pluginCore?.getModeLabel(mode) ?? ""
+        readonly property string icon: root.pluginCore?.getModeIcon(mode) ?? ""
 
-        // Not clickable when current or unsupported
-        readonly property bool interactive: {
-            if (root.busy) {
-                return false;
-            }
+        readonly property bool _enabled: {
+            const available = root.available && !root.busy;
+            return available && _supported;
+        }
 
-            if (!isSupported) {
-                return false;
-            }
+        readonly property bool _interactive: {
+            // make sure that we can only switch back to current mode
+            // this is useful because it allows us to "cancel"
+            // the switch
+            // TODO: investigate how supergfxctl behaves after switching back and
+            // forth without performing necessary steps (pending action) to apply the mode switch
+            const active = _current && root.pluginCore.pendingMode === Main.SGFXMode.None;
 
-            if (isPendingMode) {
-                return false;
-            }
-
-            if (isCurrentMode && root.gpuApi.pendingMode === Main.SGFXMode.None) {
-                return false;
-            }
-
-            return true;
+            return _enabled && !_pending && !active;
         }
 
         readonly property color textColor: {
-            if (!isSupported) {
+            // instead of using _enabled
+            // retain text color if busy
+            // lower opacity will signal the button is currently disabled
+            if (!root.available || !_supported) {
                 return Color.mOutline;
             }
 
-            if (hovered) {
+            if (_hovered) {
                 return Color.mTertiary;
             }
 
-            if (isPendingMode) {
+            if (_pending) {
                 return Color.mOnTertiary;
             }
 
-            if (isCurrentMode) {
+            if (_current) {
                 return Color.mOnPrimary;
             }
 
             return Color.mPrimary;
         }
 
-        Layout.fillWidth: true
-        implicitWidth: contentRow.implicitWidth + (Style.marginL * 2)
-        implicitHeight: contentRow.implicitHeight + (Style.marginL * 2)
-
-        radius: Style.iRadiusS
-
-        color: {
-            if (!isSupported) {
+        readonly property color backgroundColor: {
+            // retain background color if busy
+            // opacity will signal the button is currently disabled
+            if (!root.available || !_supported) {
                 return Qt.lighter(Color.mSurfaceVariant, 1.2);
             }
 
-            if (hovered) {
+            if (_hovered) {
                 return Color.transparent;
             }
 
-            if (isCurrentMode) {
+            if (_current) {
                 return Color.mPrimary;
             }
 
-            if (isPendingMode) {
+            if (_pending) {
                 return Color.mTertiary;
             }
 
@@ -120,33 +116,40 @@ Item {
             return Color.transparent;
         }
 
-        border.width: Style.borderM
-        border.color: {
-            if (!isSupported) {
+        readonly property color borderColor: {
+            if (!_enabled) {
                 return Color.mOutline;
             }
 
-            if (isPendingMode || hovered) {
+            if (_pending || _hovered) {
                 return Color.mTertiary;
             }
 
             return Color.mPrimary;
         }
 
-        opacity: isSupported ? 1.0 : 0.6
+        readonly property ColorAnimation animationBehaviour: ColorAnimation {
+            duration: Style.animationFast
+            easing.type: Easing.OutCubic
+        }
+
+        Layout.fillWidth: true
+        implicitWidth: contentRow.implicitWidth + (Style.marginL * 2)
+        implicitHeight: contentRow.implicitHeight + (Style.marginL * 2)
+
+        radius: Style.iRadiusS
+        color: backgroundColor
+        border.width: Style.borderM
+        border.color: borderColor
+
+        opacity: _enabled ? 1.0 : 0.6
 
         Behavior on color {
-            ColorAnimation {
-                duration: Style.animationFast
-                easing.type: Easing.OutCubic
-            }
+            animation: gpuButton.animationBehaviour
         }
 
         Behavior on border.color {
-            ColorAnimation {
-                duration: Style.animationFast
-                easing.type: Easing.OutCubic
-            }
+            animation: gpuButton.animationBehaviour
         }
 
         RowLayout {
@@ -160,10 +163,7 @@ Item {
                 color: gpuButton.textColor
 
                 Behavior on color {
-                    ColorAnimation {
-                        duration: Style.animationFast
-                        easing.type: Easing.OutCubic
-                    }
+                    animation: gpuButton.animationBehaviour
                 }
             }
 
@@ -174,39 +174,36 @@ Item {
                 color: gpuButton.textColor
 
                 Behavior on color {
-                    ColorAnimation {
-                        duration: Style.animationFast
-                        easing.type: Easing.OutCubic
-                    }
+                    animation: gpuButton.animationBehaviour
                 }
             }
         }
 
         TapHandler {
-            enabled: gpuButton.interactive
+            enabled: gpuButton._interactive
             gesturePolicy: TapHandler.ReleaseWithinBounds
-            onTapped: root.gpuApi.setMode(gpuButton.mode)
+            onTapped: root.pluginCore?.setMode(gpuButton.mode)
         }
 
         HoverHandler {
             id: mouse
-            enabled: gpuButton.interactive
+            enabled: gpuButton._interactive
             cursorShape: Qt.PointingHandCursor
         }
     }
 
     component Header: NBox {
-        id: headerBox
+        id: header
+
         Layout.fillWidth: true
-        Layout.preferredHeight: header.implicitHeight + Style.marginM * 2
+        Layout.preferredHeight: headerRow.implicitHeight + Style.marginM * 2
 
-        readonly property string pendingActionIcon: root.gpuApi.getActionIcon(root.pendingAction)
-        readonly property string pendingActionLabel: root.gpuApi.getActionLabel(root.pendingAction)
-
-        readonly property string label: root.pluginApi.tr("gpu")
+        readonly property string _pendingActionIcon: root.pluginCore?.getActionIcon(root.pendingAction) ?? ""
+        readonly property string _pendingActionLabel: root.pluginCore?.getActionLabel(root.pendingAction) ?? ""
+        readonly property string _label: root.pluginApi?.tr("gpu") ?? ""
 
         RowLayout {
-            id: header
+            id: headerRow
             anchors.fill: parent
             anchors.margins: Style.marginM
             spacing: Style.marginM
@@ -218,20 +215,19 @@ Item {
             }
 
             NText {
-                text: headerBox.label
+                text: header._label
                 pointSize: Style.fontSizeL
                 font.weight: Style.fontWeightBold
                 color: Color.mOnSurface
                 Layout.fillWidth: true
             }
 
-            NIconButtonHot {
-                icon: headerBox.pendingActionIcon
-                baseSize: Style.baseWidgetSize * 0.8
+            NIcon {
+                icon: header._pendingActionIcon
+                // baseSize: Style.baseWidgetSize * 0.8
                 color: Color.mTertiary
-                hot: true
-                tooltipText: headerBox.pendingActionLabel
-                visible: root.gpuApi.hasPendingAction
+                // tooltipText: header._pendingActionLabel
+                visible: root.pluginCore?.hasPendingAction ?? false
             }
 
             NIconButton {
@@ -240,7 +236,7 @@ Item {
                 tooltipText: I18n.tr("tooltips.refresh")
                 baseSize: Style.baseWidgetSize * 0.8
                 enabled: root.available && !root.busy
-                onClicked: root.gpuApi.refresh()
+                onClicked: root.pluginCore?.refresh()
 
                 RotationAnimation {
                     id: rotationAnimator
@@ -257,7 +253,7 @@ Item {
                 icon: "close"
                 tooltipText: I18n.tr("tooltips.close")
                 baseSize: Style.baseWidgetSize * 0.8
-                onClicked: root.pluginApi.closePanel(root.screen)
+                onClicked: root.pluginApi?.closePanel(root.screen)
             }
         }
     }
@@ -269,13 +265,12 @@ Item {
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: Style.marginL
+            anchors.margins: Style.marginM
 
             Header {}
 
             RowLayout {
                 Layout.fillWidth: true
-                Layout.preferredHeight: Style.marginM + 50
                 spacing: Style.marginM
 
                 GPUButton {

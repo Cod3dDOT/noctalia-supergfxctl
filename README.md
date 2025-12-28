@@ -2,10 +2,12 @@
 
 # noctalia-supergfxctl
 
-Minimum noctalia version: `3.6.0`
+Minimum noctalia version: `3.7.1`
 
-Brings supergfxctl control to your noctalia shell.  
+Brings GPU control to your noctalia shell.  
 Available modes are detected automatically. Current mode is highlighted in the main color, pending mode will be in tertiary.
+
+This plugin attempts to guess the action the user needs to take (generally one of logout/reboot/nothing) after mode switch. It is unknown whether supergfxctl reports reliable information after the switch, be it the current mode or the pending action needed to get to that mode. In the future, proposed actions will be customizable. For now, DO NOT rely on the plugin's proposed action.
 
 Made possible by [supergfxctl](https://gitlab.com/asus-linux/supergfxctl).  
 Thanks [asusctl](https://gitlab.com/asus-linux/asusctl), [rog-control-center](https://gitlab.com/asus-linux/asusctl/-/tree/main/rog-control-center) for code inspiration.
@@ -36,23 +38,16 @@ This project strives to be [REUSE](https://reuse.software/) compliant.
 
 Generally:
 - Documentation is under CC-BY-NC-SA-4.0
-- Code is under AGPL-3.0-or-later
+- Code is under MIT
 - Config files are under CC0-1.0
 
 ```
     noctalia-supergfxctl: GPU control with supergfxctl for noctalia
     Copyright (C) 2025 cod3ddot@proton.me
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published
-    by the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+    
+    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+    
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
