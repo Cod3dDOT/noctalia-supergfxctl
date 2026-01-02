@@ -36,8 +36,6 @@ QtObject {
     readonly property string pluginVersion: pluginApi?.manifest.version ?? "???"
 
     readonly property QtObject pluginSettings: QtObject {
-        id: pluginSettings
-
         readonly property var _manifest: root.pluginApi?.manifest.defaultSettings ?? {}
         readonly property var _user: root.pluginApi?.pluginSettings ?? {}
 
@@ -179,7 +177,7 @@ QtObject {
     readonly property Timer pollingTimer: Timer {
         interval: root.pluginSettings.pollingInterval
         repeat: true
-        running: root.pluginSettings.available && root.pluginSettings.polling && !root.busy
+        running: root.available && root.pluginSettings.polling && !root.busy
 
         onTriggered: {
             if (root.busy) {
