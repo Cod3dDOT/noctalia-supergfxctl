@@ -14,8 +14,8 @@ ColumnLayout {
     id: root
 
     // noctalia plugin api, injected dynamically
-    property var pluginApi: null
-    readonly property var pluginCore: pluginApi?.mainInstance
+    property QtObject pluginApi: null
+    readonly property QtObject pluginCore: pluginApi?.mainInstance
 
     spacing: Style.marginM
 

@@ -20,7 +20,7 @@ Item {
     id: root
 
     // Plugin API (injected by PluginPanelSlot)
-    property var pluginApi: null
+    property QtObject pluginApi: null
     readonly property QtObject pluginCore: pluginApi?.mainInstance
 
     // SmartPanel properties (required for panel behavior)

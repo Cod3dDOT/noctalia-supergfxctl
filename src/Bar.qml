@@ -18,7 +18,8 @@ Item {
     id: root
 
     // Plugin API (injected by PluginPanelSlot)
-    property var pluginApi: null
+    property QtObject pluginApi: null
+    readonly property QtObject pluginCore: pluginApi?.mainInstance
 
     // Required properties for bar widgets
     property ShellScreen screen
@@ -26,8 +27,6 @@ Item {
     property string section: ""
     property int sectionWidgetIndex: -1
     property int sectionWidgetsCount: 0
-
-    readonly property var pluginCore: pluginApi?.mainInstance
 
     readonly property string currentIcon: pluginCore?.getModeIcon(pluginCore.mode) ?? ""
     readonly property string currentLabel: pluginCore?.getModeLabel(pluginCore.mode) ?? ""

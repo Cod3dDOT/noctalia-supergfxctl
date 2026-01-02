@@ -10,7 +10,7 @@ import Quickshell.Services.Notifications
 
 import qs.Commons
 
-Item {
+QtObject {
     id: root
 
     enum SGFXMode {
@@ -35,10 +35,7 @@ Item {
     readonly property string pluginId: pluginApi?.pluginId
     readonly property string pluginVersion: pluginApi?.manifest.version ?? "???"
 
-    // make the settings public
-    readonly property QtObject pluginSettings: pluginSettings
-
-    QtObject {
+    readonly property QtObject pluginSettings: QtObject {
         id: pluginSettings
 
         readonly property var _manifest: root.pluginApi?.manifest.defaultSettings ?? {}
@@ -163,7 +160,7 @@ Item {
         }
     }
 
-    Process {
+    readonly property Process refreshProc: Process {
         id: refreshProc
         running: false
         command: ["supergfxctl", "--version", "--get", "--supported", "--pend-action", "--pend-mode"]
@@ -179,8 +176,7 @@ Item {
         }
     }
 
-    Timer {
-        id: pollingTimer
+    readonly property Timer pollingTimer: Timer {
         interval: root.pluginSettings.pollingInterval
         repeat: true
         running: root.pluginSettings.available && root.pluginSettings.polling && !root.busy
@@ -195,7 +191,7 @@ Item {
         }
     }
 
-    Connections {
+    readonly property Connections notificationListener: Connections {
         target: NotificationServer {
             onNotification: notification => {
                 root.log(notification);
@@ -203,8 +199,7 @@ Item {
         }
     }
 
-    Process {
-        id: setModeProc
+    readonly property Process setModeProc: Process {
         stderr: StdioCollector {
             onStreamFinished: {
                 if (root.debug && text) {
@@ -241,14 +236,12 @@ Item {
             // which is close to the *supposed* supergfxctl behaviour
             // BUT IT IS NOT
             // supergfxctl --pend-mode --pend-action reports absolute nonsense
-            sgfx.refresh();
+            root.sgfx.refresh();
         }
     }
 
     // internal helper dealing with supergfxctl
-    QtObject {
-        id: sgfx
-
+    readonly property QtObject sgfx: QtObject {
         property bool available: false
         property string version: "???"
         property int mode: Main.SGFXMode.None
