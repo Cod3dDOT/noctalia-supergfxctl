@@ -31,24 +31,23 @@ Item {
         Nothing
     }
 
-    property var pluginApi: null
+    property QtObject pluginApi: null
     readonly property string pluginId: pluginApi?.pluginId
     readonly property string pluginVersion: pluginApi?.manifest.version ?? "???"
 
     // make the settings public
     readonly property QtObject pluginSettings: pluginSettings
 
-    // TODO: make access read-only
     QtObject {
         id: pluginSettings
 
-        readonly property var manifest: root.pluginApi?.manifest.defaultSettings
-        readonly property var user: root.pluginApi?.pluginSettings
+        readonly property var _manifest: root.pluginApi?.manifest.defaultSettings ?? {}
+        readonly property var _user: root.pluginApi?.pluginSettings ?? {}
 
-        property bool debug: user.debug ?? manifest.debug ?? false
-        property bool polling: user.polling ?? manifest.polling ?? true
-        property int pollingInterval: user.pollingInterval ?? manifest.pollingInterval ?? 3000
-        property bool listenToNotifications: user.listenToNotifications ?? manifest.listenToNotifications ?? true
+        property bool debug: _user.debug ?? _manifest.debug ?? false
+        property bool polling: _user.polling ?? _manifest.polling ?? false
+        property int pollingInterval: _user.pollingInterval ?? _manifest.pollingInterval ?? 3000
+        property bool listenToNotifications: _user.listenToNotifications ?? _manifest.listenToNotifications ?? false
     }
 
     readonly property bool available: sgfx.available
