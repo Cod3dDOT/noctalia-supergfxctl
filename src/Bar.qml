@@ -30,25 +30,28 @@ Item {
 
     readonly property string currentIcon: pluginCore?.getModeIcon(pluginCore.mode) ?? ""
     readonly property string currentLabel: pluginCore?.getModeLabel(pluginCore.mode) ?? ""
-    readonly property real currentIconOpacity: pluginCore?.available ? 1.0 : 0.5
-
-    readonly property string pendingActionLabel: pluginCore?.hasPendingAction ? pluginCore?.getActionLabel(pluginCore.pendingAction) : ""
 
     implicitWidth: pill.width
     implicitHeight: pill.height
 
     BarPill {
         id: pill
-        opacity: root.currentIconOpacity
+
         screen: root.screen
         oppositeDirection: BarService.getPillDirection(root)
-        icon: root.currentIcon
         autoHide: false
+
+        // makes the tooltip delay shorter
+        forceClose: true
+
+        opacity: pluginCore?.available ? 1.0 : 0.5
+        icon: root.currentIcon
         tooltipText: {
             if (!root.pluginCore?.hasPendingAction) {
                 return root.currentLabel;
             }
-            return root.currentLabel + " | " + root.pendingActionLabel;
+            const pendingActionLabel = root.pluginCore?.hasPendingAction ? pluginCore?.getActionLabel(pluginCore.pendingAction) : ""
+            return root.currentLabel + " | " + pendingActionLabel;
         }
 
         onClicked: root.pluginApi?.openPanel(root.screen)
@@ -113,7 +116,7 @@ Item {
                 root.pluginCore?.refresh();
                 break;
             case "widget-settings":
-                // unsupported for now
+                // TODO: unsupported for now
                 break;
             }
         }
