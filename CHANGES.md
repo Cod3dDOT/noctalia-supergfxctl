@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Clicking on the proposed action icon now opens the session menu
 -	Implemented polling supergfxctl
 -	Settings refactor
+-	Added ability to disable guessing the pending action and rely solely on supergfxctl
 -	Small fixes and performance improvements
 
 ## [0.0.1] - 2025-12-08
