@@ -9,11 +9,11 @@
 		"supergfxctl": {
 			"patchPending": {
 				"label": "Guess fallback action",
-				"description": "Guess the required action instead of relying on supergfxctl output."
+				"description": "Guess the required action instead of relying on the output of supergfxctl."
 			},
 			"polling": {
 				"label": "Polling",
-				"description": "Periodically poll the supergfxctl process for status updates."
+				"description": "Periodically poll the supergfxctl process for status updates. Warning: this can cause supergfxctl to hang!"
 			}
 		},
 		"rogcc": {
@@ -27,7 +27,7 @@
 		"refresh": "Refresh status"
 	},
 	"action": {
-		"SwitchToIntegrated": "Switch to integrated gpu first.",
+		"SwitchToIntegrated": "Switch to integrated GPU first.",
 		"AsusEgpuDisable": "Disable ASUS eGPU first."
 	},
 	"mode": {

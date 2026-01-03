@@ -19,19 +19,13 @@ ColumnLayout {
 
     spacing: Style.marginM
 
-    RowLayout {
-        Layout.fillWidth: true
+    // https://github.com/noctalia-dev/noctalia-shell/blob/main/Widgets/NText.qml
+    NText {
+        text: "ROG Control Center"
+        color: Color.mSecondary
 
-        // https://github.com/noctalia-dev/noctalia-shell/blob/main/Widgets/NText.qml
-        NText {
-            text: "ROG Control Center"
-            color: Color.mSecondary
-        }
-
-        NDivider {
-            Layout.fillWidth: true
-            Layout.margins: Style.marginL
-        }
+        Layout.topMargin: Style.marginM
+        Layout.bottomMargin: Style.marginM
     }
 
     RowLayout {
@@ -61,11 +55,12 @@ ColumnLayout {
         NText {
             text: "supergfxctl"
             color: Color.mSecondary
+            Layout.topMargin: Style.marginM
+            Layout.bottomMargin: Style.marginM
         }
 
         NDivider {
             Layout.fillWidth: true
-            Layout.margins: Style.marginL
         }
     }
 
@@ -114,11 +109,12 @@ ColumnLayout {
         NText {
             text: "Miscellaneous"
             color: Color.mSecondary
+            Layout.topMargin: Style.marginM
+            Layout.bottomMargin: Style.marginM
         }
 
         NDivider {
             Layout.fillWidth: true
-            Layout.margins: Style.marginL
         }
     }
 
