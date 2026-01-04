@@ -90,7 +90,7 @@ Item {
             }
 
             if (_hovered) {
-                return Color.transparent;
+                return "transparent";
             }
 
             if (_current) {
@@ -102,7 +102,7 @@ Item {
             }
 
             // non-current default
-            return Color.transparent;
+            return "transparent";
         }
 
         readonly property color borderColor: {
@@ -258,7 +258,7 @@ Item {
         id: panelContainer
         x: Style.marginM
         y: Style.marginM
-        color: Color.transparent
+        color: "transparent"
 
         ColumnLayout {
             spacing: Style.marginM

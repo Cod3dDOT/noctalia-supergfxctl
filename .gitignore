@@ -2,3 +2,4 @@
 
 # ignore generated user settings
 settings.json
+.qmlls.ini
