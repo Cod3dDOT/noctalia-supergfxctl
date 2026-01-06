@@ -47,18 +47,17 @@ Item {
 
         screen: root.screen
         oppositeDirection: BarService.getPillDirection(root)
-        autoHide: false
 
         // makes the tooltip delay shorter
         forceClose: true
 
-        opacity: pluginCore?.available ? 1.0 : 0.5
+        opacity: root.pluginCore?.available ? 1.0 : 0.5
         icon: root.currentIcon
         tooltipText: {
             if (!root.pluginCore?.hasPendingAction) {
                 return root.currentLabel;
             }
-            const pendingActionLabel = root.pluginCore?.hasPendingAction ? pluginCore?.getActionLabel(pluginCore.pendingAction) : "";
+            const pendingActionLabel = root.pluginCore?.hasPendingAction ? root.pluginCore?.getActionLabel(root.pluginCore.pendingAction) : "";
             return root.currentLabel + " | " + pendingActionLabel;
         }
 
@@ -103,7 +102,8 @@ Item {
             {
                 "label": root.pluginApi?.tr("context-menu.refresh"),
                 "action": "refresh",
-                "icon": "refresh"
+                "icon": "refresh",
+                "enabled": root.pluginCore?.available && !root.pluginCore?.busy
             },
             {
                 "label": "Access settings in the control center",
