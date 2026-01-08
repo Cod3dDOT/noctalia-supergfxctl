@@ -61,7 +61,7 @@ Item {
             return root.currentLabel + " | " + pendingActionLabel;
         }
 
-        onClicked: root.pluginApi?.openPanel(root.screen)
+        onClicked: root.pluginApi?.openPanel(root.screen, this)
 
         onRightClicked: {
             const popupMenuWindow = PanelService.getPopupMenuWindow(root.screen);

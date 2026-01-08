@@ -43,7 +43,7 @@ NIconButton {
         return root.currentLabel + " | " + pendingActionLabel;
     }
 
-    onClicked: root.pluginApi?.openPanel(root.screen)
+    onClicked: root.pluginApi?.openPanel(root.screen, this)
 
     Rectangle {
         id: badge
