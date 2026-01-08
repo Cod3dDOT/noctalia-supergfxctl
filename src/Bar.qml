@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
+pragma ValueTypeBehavior: Addressable
+
 import QtQuick
 
 import Quickshell
@@ -53,13 +55,7 @@ Item {
 
         opacity: root.pluginCore?.available ? 1.0 : 0.5
         icon: root.currentIcon
-        tooltipText: {
-            if (!root.pluginCore?.hasPendingAction) {
-                return root.currentLabel;
-            }
-            const pendingActionLabel = root.pluginCore?.hasPendingAction ? root.pluginCore?.getActionLabel(root.pluginCore.pendingAction) : "";
-            return root.currentLabel + " | " + pendingActionLabel;
-        }
+        tooltipText: root.pluginCore?.getTooltip() ?? ""
 
         onClicked: root.pluginApi?.openPanel(root.screen, this)
 
@@ -73,7 +69,7 @@ Item {
 
         Rectangle {
             id: badge
-            visible: root.pluginCore?.hasPendingAction
+            visible: root.pluginCore?.hasPendingAction ?? false
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.rightMargin: 2

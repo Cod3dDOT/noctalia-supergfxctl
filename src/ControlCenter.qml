@@ -20,7 +20,7 @@ import qs.Services.Noctalia
 
 	Left click to open the plugin panel
  */
-// https://github.com/noctalia-dev/noctalia-shell/blob/main/Modules/Bar/Extras/BarPill.qml
+// https://github.com/noctalia-dev/noctalia-shell/blob/main/Widgets/NIconButton.qml
 NIconButton {
     id: root
 
@@ -31,23 +31,16 @@ NIconButton {
     readonly property QtObject pluginCore: pluginApi?.mainInstance
 
     readonly property string currentIcon: pluginCore?.getModeIcon(pluginCore.mode) ?? ""
-    readonly property string currentLabel: pluginCore?.getModeLabel(pluginCore.mode) ?? ""
 
     opacity: root.pluginCore?.available ? 1.0 : 0.5
     icon: root.currentIcon
-    tooltipText: {
-        if (!root.pluginCore?.hasPendingAction) {
-            return root.currentLabel;
-        }
-        const pendingActionLabel = root.pluginCore?.hasPendingAction ? root.pluginCore?.getActionLabel(root.pluginCore.pendingAction) : "";
-        return root.currentLabel + " | " + pendingActionLabel;
-    }
+    tooltipText: root.pluginCore?.getTooltip() ?? ""
 
-    onClicked: root.pluginApi?.openPanel(root.screen, this)
+    onClicked: root.pluginApi?.openPanel(root.screen, undefined)
 
     Rectangle {
         id: badge
-        visible: root.pluginCore?.hasPendingAction
+        visible: root.pluginCore?.hasPendingAction ?? false
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.rightMargin: 2

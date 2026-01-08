@@ -146,6 +146,14 @@ QtObject {
         }
     }
 
+    function getTooltip(): string {
+        const label = root.getModeLabel(root.mode);
+        if (!root.hasPendingAction) {
+            return label;
+        }
+        return `${label} | ${root.getActionLabel(root.pendingAction)}`;
+    }
+
     function refresh(): void {
         sgfx.refresh();
     }
