@@ -1,10 +1,13 @@
 /*
- * SPDX-FileCopyrightText: 2025 cod3ddot@proton.me
+ * Bar widget showing the current GPU mode.
+ * Shows a badge when a pending action is available.
  *
+ * Left click to open the plugin panel.
+ * Right click to open a context menu.
+ *
+ * SPDX-FileCopyrightText: 2025-2026 cod3ddot@proton.me
  * SPDX-License-Identifier: MIT
  */
-
-pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 
@@ -16,13 +19,8 @@ import qs.Modules.Bar.Extras
 import qs.Services.UI
 import qs.Services.Noctalia
 
-/**
-	Bar widget for showing the current GPU mode, with an optional badge when a pending
-	action is available.
+import "ui"
 
-	Left click to open the plugin panel
-	Right click to open a context menu
- */
 Item {
     id: root
 
@@ -37,7 +35,7 @@ Item {
     property int sectionWidgetIndex: -1
     property int sectionWidgetsCount: 0
 
-    readonly property string currentIcon: pluginCore?.getModeIcon(pluginCore.mode) ?? ""
+    readonly property string currentIcon: Icons.getModeIcon(pluginCore?.mode)
     readonly property string currentLabel: pluginCore?.getModeLabel(pluginCore.mode) ?? ""
 
     implicitWidth: pill.width
@@ -67,20 +65,12 @@ Item {
             }
         }
 
-        Rectangle {
-            id: badge
+        IconBadge {
             visible: root.pluginCore?.hasPendingAction ?? false
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.rightMargin: 2
             anchors.topMargin: 1
-            z: 2
-            height: 8
-            width: 8
-            radius: Style.radiusXS
-            color: Color.mTertiary
-            border.color: Color.mSurface
-            border.width: Style.borderS
         }
     }
 

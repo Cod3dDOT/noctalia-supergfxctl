@@ -1,6 +1,7 @@
 /*
- * SPDX-FileCopyrightText: 2025 cod3ddot@proton.me
+ * Settings UI
  *
+ * SPDX-FileCopyrightText: 2025-2026 cod3ddot@proton.me
  * SPDX-License-Identifier: MIT
  */
 
@@ -92,7 +93,6 @@ ColumnLayout {
     }
 
     NValueSlider {
-        isSettings: true
         text: root.pluginSettings.supergfxctl.pollingInterval + "ms"
         enabled: root.pluginSettings.supergfxctl.polling
         from: 1000
